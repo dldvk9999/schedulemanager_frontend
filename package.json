@@ -20,6 +20,7 @@
     "fsevents": "^2.3.2"
   },
   "dependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-service": "^5.0.6",
     "axios": "^0.26.1",
     "babel-eslint": "^10.1.0",
