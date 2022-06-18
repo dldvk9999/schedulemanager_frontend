@@ -6,6 +6,11 @@
     "node": "16.x",
     "npm": "6.x"
   },
+  "eslintConfig": {
+    "rules": {
+      "no-console": "off"
+    }
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
