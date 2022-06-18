@@ -328,7 +328,7 @@ import { DatePicker } from 'element-ui';
                                 }
                             });
                         } catch (err) {
-                            console.log(err);
+                            alert(err);
                         }
                     } else {
                         try {
@@ -340,7 +340,7 @@ import { DatePicker } from 'element-ui';
                                 }
                             });
                         } catch (err) {
-                            console.log(err);
+                            alert(err);
                         }
                     }
 
