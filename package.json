@@ -12,9 +12,9 @@
     }
   },
   "scripts": {
-    "serve": "./node_modules/.bin/vue-cli-service serve",
-    "build": "./node_modules/.bin/vue-cli-service build",
-    "lint": "./node_modules/.bin/vue-cli-service lint"
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.2"
