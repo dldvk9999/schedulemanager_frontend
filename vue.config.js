@@ -4,10 +4,10 @@ module.exports = {
     sourceMap: process.env.NODE_ENV !== 'production'
   },
   devServer: { 
-    disableHostCheck: true,
+    allowedHosts: 'all',
     proxy: { 
       '/api': { 
-        target: 'https://schedulemanager-back.herokuapp.com//api',
+        target: 'https://schedulemanager-back.herokuapp.com/api',
         changeOrigin: true, 
         pathRewrite: { 
           '^/api': ''
