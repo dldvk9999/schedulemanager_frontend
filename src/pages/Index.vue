@@ -24,18 +24,6 @@
           <h1 class="h1-seo">Now UI Kit.</h1>
           <h3>A beautiful Bootstrap 4 UI kit. Yours free.</h3>
         </div>
-        <h6 class="category category-absolute">
-          Designed by
-          <a href="http://invisionapp.com/" target="_blank">
-            <img src="img/invision-white-slim.png" class="invision-logo" /> </a
-          >. Coded by
-          <a href="https://www.creative-tim.com" target="_blank">
-            <img
-              src="img/creative-tim-white-slim2.png"
-              class="creative-tim-logo"
-            /> </a
-          >.
-        </h6>
       </div>
     </div>
     <div class="main">
@@ -121,19 +109,6 @@ export default {
     DownloadSection,
     Alert
   },
-  created() {
-    window.addEventListener('scroll', () => {
-      if(this.$router.history.current["path"] == "/calendar") {
-        if(window.scrollX == 0 && window.scrollY == 0) {
-          document.querySelector("#app > nav > div").classList.remove('fade-out-box');
-          document.querySelector("#app > nav > div").classList.add('fade-in-box');
-        } else {
-          document.querySelector("#app > nav > div").classList.add('fade-out-box');
-          document.querySelector("#app > nav > div").classList.remove('fade-in-box');
-        }
-      }
-    });
-  },
   data: () => ({
     isAlert: false
   }),
@@ -148,85 +123,6 @@ export default {
 };
 </script>
 <style>
-.fade-in-box {
-  display: inline-block;
-  animation: fadein 1s;
-  -moz-animation: fadein 1s; /* Firefox */
-  -webkit-animation: fadein 1s; /* Safari and Chrome */
-  -o-animation: fadein 1s; /* Opera */
-}
-@keyframes fadein {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-@-moz-keyframes fadein { /* Firefox */
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-@-webkit-keyframes fadein { /* Safari and Chrome */
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-@-o-keyframes fadein { /* Opera */
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-.fade-out-box {
-  display: inline-block;
-  animation: fadeout 1s;
-  -moz-animation: fadeout 1s; /* Firefox */
-  -webkit-animation: fadeout 1s; /* Safari and Chrome */
-  -o-animation: fadeout 1s; /* Opera */
-  animation-fill-mode: forwards;
-}
-@keyframes fadeout {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-@-moz-keyframes fadeout { /* Firefox */
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-@-webkit-keyframes fadeout { /* Safari and Chrome */
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-@-o-keyframes fadeout { /* Opera */
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
 .alert-enter-active, .alert-leave-active {
   transition: opacity .5s;
 }
