@@ -149,9 +149,13 @@
         .show > &.dropdown-toggle,
         .show > &.dropdown-toggle:focus,
         .show > &.dropdown-toggle:hover{
-            background-color: $transparent-bg;
-            color: $btn-states-color;
-            border-color: $btn-states-color;
+            // background-color: $transparent-bg;
+            // color: $btn-states-color;
+            // border-color: $btn-states-color;
+            // box-shadow: none;
+            
+            background-color: $white-color;
+            color: $black-color;
             box-shadow: none;
         }
     }

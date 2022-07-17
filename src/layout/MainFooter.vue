@@ -8,7 +8,7 @@
       <nav>
         <ul>
           <li>
-            <a href="https:///presentation.creative-tim.com">
+            <a>
               About Us
             </a>
           </li>

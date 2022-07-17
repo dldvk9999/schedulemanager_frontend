@@ -1,5 +1,5 @@
 <template>
-    <v-card>
+    <v-card @click:outside="hide()">
         <v-card-title>
             일정 저장
         </v-card-title>
@@ -11,7 +11,7 @@
                         v-model="startDate"
                         type="date"
                         placeholder="시작 일"
-                        :disabled-date="disabledDate"
+                        :picker-options="startDateOption"
                     />
                 </div>
                 <div>
@@ -20,7 +20,7 @@
                         v-model="endDate"
                         type="date"
                         placeholder="종료 일"
-                        :disabled-date="disabledDate"
+                        :picker-options="endDateOption"
                     />
                 </div>
             </div>
@@ -35,38 +35,42 @@
                     :style="{ 'background-color' : colorInit() }"
                     @click="selectColor = !selectColor"
                 ></button>
-                <transition>
-                <div 
-                    v-if="selectColor"
-                    class="change-color">
-                    <button 
-                    v-for="(color, index) in colors" 
-                    v-bind:key="color"
-                    :style="{ 'background-color' : color }"
-                    class="input-title input-button"
-                    @click="changeColor(index)"></button>
-                </div>
+            </div>
+            <div class="input-title-flex">
+                <transition name="fade">
+                    <div 
+                        v-if="selectColor"
+                        class="change-color">
+                        <button 
+                        v-for="(color, index) in colors" 
+                        :key="color"
+                        :style="{ 'background-color' : color }"
+                        class="input-title input-button"
+                        style="margin-top: 0"
+                        @click="changeColor(index)"></button>
+                    </div>
                 </transition>
             </div>
             <div class="input-title-flex">
                 <fg-input 
                     placeholder="내용을 입력하세요"
                     addon-left-icon="now-ui-icons users_single-02"
-                    v-model="selectContents"
+                    v-model="isContent"
                 />
             </div>
             <div class="input-title-flex">
                 <fg-input 
                     placeholder="장소를 입력하세요"
                     addon-left-icon="now-ui-icons users_single-02"
-                    v-model="selectLocate"
+                    v-model="isLocate"
                 />
             </div>
             <div style="display:flex;">
                 <div class="input-title-flex">
                     <v-select
                         label="알림"
-                        v-model="selectAlerts"
+                        v-model="isAlert"
+                        v-on:change="changeAlert"
                         :items="alerts"
                         dense
                         outlined
@@ -77,7 +81,8 @@
                 <div class="input-title-flex">
                     <v-select
                         label="반복"
-                        v-model="selectAgain"
+                        v-model="isAgain"
+                        v-on:change="changeAgain"
                         :items="agains"
                         dense
                         outlined
@@ -89,15 +94,25 @@
             <div class="input-title-flex">
                 <h5 class="input-title">파일</h5>
                 <v-file-input 
-                label="File input"
-                ref='file'
-                v-model="file"
-                @change="selectFile"
-                name="file"
-                accept="text/*"
-                type="file"
+                    multiple
+                    label="File input"
+                    ref='file'
+                    v-model="file"
+                    @change="selectFile"
+                    name="file"
+                    accept="text/*"
+                    type="file"
                 ></v-file-input>
             </div>
+            <n-button 
+                v-for="file in selectFiles" 
+                v-bind:key="file" 
+                type="primary" 
+                round 
+                simple
+                @click="fileDownload(file)"
+            >{{ file }}
+            </n-button>
         </v-card-text>
         <v-card-actions class="justify-end mr-2 pb-4">
             <v-btn 
@@ -120,13 +135,14 @@
 </template>
 <script>
 import { en, ko } from 'vuejs-datepicker/dist/locale';
-import { FormGroupInput as FgInput } from '@/components';
+import { Button, FormGroupInput as FgInput } from '@/components';
 import { DatePicker } from 'element-ui';
     export default {
         name: 'Dialog',
         components: {
             FgInput,
-            [DatePicker.name]: DatePicker
+            [DatePicker.name]: DatePicker,
+            [Button.name]: Button
         },
         props: {
             selectId: {
@@ -161,8 +177,8 @@ import { DatePicker } from 'element-ui';
                 default: 0
             },
             selectFiles: {
-                type: String,
-                default: ''
+                type: Array,
+                default: null
             },
             selectColors: {
                 type: Number,
@@ -202,46 +218,57 @@ import { DatePicker } from 'element-ui';
             colors: ['#EEAFAF', '#AFC4E7', '#BAE7AF', '#FFF77F', '#FF7F7F', '#FDC4F8', '#CB9FFD', '#A9E1ED', '#F3CDAD', '#DFD4E4', '#83A7A3'],
             nowColor: null,
             required: false,
+            isChangeColor: false,
+            startDateOption: {
+				disabledDate(time) {
+                    return time.getTime() < new Date(new Date().setDate(new Date().getDate() - 1));
+				}
+			},
+            endDateOption: {
+				disabledDate(time) {
+                    return time.getTime() < new Date(new Date().setDate(new Date().getDate() - 1));
+				}
+			},
         }),
         computed: {
             startDate: {
-                get() {
-                    return this.state.startDate == null ? this.selectStartDate : this.state.startDate;
-                },
-                set(date) {
-                    this.state.startDate = date;
-                }
+                get() { return this.state.startDate == null ? this.selectStartDate : this.state.startDate },
+                set(date) { this.state.startDate = date }
             },
             endDate: {
-                get() {
-                    return this.state.endDate == null ? this.selectEndDate : this.state.endDate;
-                },
-                set(date) {
-                    this.state.endDate = date;
-                }
+                get() { return this.state.endDate == null ? this.selectEndDate : this.state.endDate },
+                set(date) { this.state.endDate = date }
             },
-            disabledEndDates: function() {
-                return { to: this.state.startDate == undefined ? new Date() : this.state.startDate }
+            isAlert: {
+                get() { return this.selectIsEdit ? this.alerts[this.selectAlerts] : this.alert },
+                set(value) { this.alert = value }
             },
-            disable: function() {
-                return new Date()
+            isAgain: {
+                get() { return this.selectIsEdit ? this.agains[this.selectAgain] : this.again },
+                set(value) { this.again = value }
             },
             isTitle: {
-                get() {
-                    if (this.selectIsEdit) {
-                        return this.selectTitle;
-                    } else {
-                        return this.title;
-                    }
-                },
-                set(value) {
-                    this.title = value;
-                }
+                get() { return this.selectIsEdit ? this.selectTitle : this.title },
+                set(value) { this.title = value }
+            },
+            isContent: {
+                get() { return this.selectIsEdit ? this.selectContents : this.content },
+                set(value) { this.content = value }
+            },
+            isLocate: {
+                get() { return this.selectIsEdit ? this.selectLocate : this.locate },
+                 set(value) { this.locate = value }
             }
         },
         methods: {
-            disabledDate(time) {
-                return time.getTime() > Date.now()
+            fileDownload(filename) {
+                console.log(filename)
+            },
+            changeAlert(alert) {
+                this.alert = this.alerts.indexOf(alert);
+            },
+            changeAgain(again) {
+                this.again = this.agains.indexOf(again);
             },
             selectFile(event) {
                 this.file = event;
@@ -249,14 +276,17 @@ import { DatePicker } from 'element-ui';
             changeColor(index) {
                 this.nowColor = index;
                 this.selectColor = false;
+                this.isChangeColor = true;
             },
             colorInit() {
-                if (this.selectColors == -1) {
-                    this.nowColor = this.nowColor == null ? Math.floor((this.colors.length) * Math.random()) : this.nowColor;
+                if (this.selectColors == null && this.nowColor == null) {
+                    this.nowColor = Math.floor((this.colors.length) * Math.random());
+                    return this.colors[this.nowColor];
+                } else if (this.selectColors != null) {
+                    return this.isChangeColor ? this.colors[this.nowColor] : this.colors[this.selectColors];
                 } else {
-                    this.nowColor = this.selectColors;
+                    return this.colors[this.nowColor];
                 }
-                return this.colors[this.nowColor];
             },
             startdateSelected (date) {
                 this.$set(this.state, 'startDate', date);
@@ -276,6 +306,9 @@ import { DatePicker } from 'element-ui';
                 this.locate = '';
                 this.file = null;
                 this.allDay = false;
+                this.isChangeColor = false;
+                this.state.startDate == null;
+                this.state.endDate == null;
                 this.$emit('hide');
             },
             submit() {
@@ -285,6 +318,9 @@ import { DatePicker } from 'element-ui';
                     this.$router.push("/login");
                     return;
                 }
+
+                // console.log(this.alert, this.alerts[this.alert], this.again, this.agains[this.again])
+                // return;
 
                 // 시작일 날짜 + 시간
                 let startDate = new Date(this.state.startDate == undefined ? this.selectStartDate : this.state.startDate);
@@ -309,51 +345,62 @@ import { DatePicker } from 'element-ui';
                     fd.append('allday', this.allDay);
                     fd.append('title', this.title != '' ? this.title : this.selectTitle);
                     fd.append('memo', this.content);
-                    fd.append('alert', this.alerts.indexOf(this.alert));
-                    fd.append('again', this.agains.indexOf(this.again));
+                    fd.append('alert', this.alert);
+                    fd.append('again', this.again);
                     fd.append('locate', this.locate);
-                    fd.append('file', this.file);
+                    if (this.file == null) {
+                        fd.append('file', this.file);
+                    } else {
+                        for(let i=0; i<this.file.length; i++) {
+                            fd.append('file', this.file[i]);
+                        }
+                    }
                     fd.append('color', this.nowColor);
                     fd.append('jwt', token);
 
                     if (this.selectIsEdit) {
                         fd.append('id', this.selectId);
 
-                        try {
-                            this.$http.put('/api/schedule', fd)
-                            .then((response) => {
-                                if (!response.data.status) {
-                                    if (response.data.print)
-                                        alert(response.data.message);
-                                }
-                            });
-                        } catch (err) {
-                            alert(err);
-                        }
+                        this.$http.put('/api/schedule', fd)
+                        .then(_ => {
+                            alert("일정 수정 완료");
+                            this.$emit('submit');
+                            this.$router.go();
+                            this.title = '';
+                            this.content = '';
+                            this.alert = this.alerts[0];
+                            this.again = this.agains[0];
+                            this.locate = '';
+                            this.file = null;
+                            this.allDay = false;
+                            this.nowColor = '';
+                        })
+                        .catch((err) => {
+                            if (this.$cookies.isKey("jwt")) {
+                                alert(err.response.data.message);
+                            }
+                        })
                     } else {
-                        try {
-                            this.$http.post('/api/schedule', fd)
-                            .then((response) => {
-                                if (!response.data.status) {
-                                    if (response.data.print)
-                                        alert(response.data.message);
-                                }
-                            });
-                        } catch (err) {
-                            alert(err);
-                        }
+                        this.$http.post('/api/schedule', fd)
+                        .then(_ => {
+                            alert("일정 생성 완료");
+                            this.$emit('submit');
+                            this.$router.go();
+                            this.title = '';
+                            this.content = '';
+                            this.alert = this.alerts[0];
+                            this.again = this.agains[0];
+                            this.locate = '';
+                            this.file = null;
+                            this.allDay = false;
+                            this.nowColor = '';
+                        })
+                        .catch((err) => {
+                            if (this.$cookies.isKey("jwt")) {
+                                alert(err.response.data.message);
+                            }
+                        })
                     }
-
-                    this.$emit('submit');
-                    this.$router.go();
-                    this.title = '';
-                    this.content = '';
-                    this.alert = this.alerts[0];
-                    this.again = this.agains[0];
-                    this.locate = '';
-                    this.file = null;
-                    this.allDay = false;
-                    this.nowColor = '';
                 } else {
                     this.required = true
                 }
@@ -423,29 +470,27 @@ import { DatePicker } from 'element-ui';
   margin-left: 10px; 
   border-radius: 50%; 
   color: transparent;
-  border: 1px solid gray;
+  /* border: 1px solid gray; */
   padding: 13px;
   align-self: start;
   margin-top: 5px;
 }
 .change-color {
   border-radius: 10px;
-  position: absolute;
-  width: 50%;
   background-color: white;
   border: 1px solid gray;
   padding: 5px;
-  right: 24px;
-  top: 255px;
-  z-index: 999;
-  transform: 1s;
+  width: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-around;
 }
-.v-enter-active,
-.v-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s ease;
 }
-.v-enter-from,
-.v-leave-to {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

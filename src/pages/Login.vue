@@ -4,7 +4,7 @@
       class="page-header-image"
       style="background-image: url('img/login.jpg')"
     ></div>
-    <div class="content">
+    <div class="content" style="margin-top: 8rem">
       <div class="container">
         <div class="col-md-5 ml-auto mr-auto">
           <card type="login" plain>
@@ -35,20 +35,19 @@
               <div class="card-footer text-center">
                 <button
                   class="btn btn-primary btn-round btn-lg btn-block"
-                  >Get Started</button
-                >
+                  >Get Started</button>
               </div>
             </form>
 
             <template slot="raw-content">
               <div class="pull-left">
                 <h6>
-                  <a href="#pablo" class="link footer-link">Create Account</a>
+                  <a href="/#/signup" class="link footer-link">Create Account</a>
                 </h6>
               </div>
               <div class="pull-right">
                 <h6>
-                  <a href="#pablo" class="link footer-link">Need Help?</a>
+                  <a class="link footer-link">Need Help?</a>
                 </h6>
               </div>
             </template>
@@ -74,6 +73,12 @@ export default {
   methods: {
     onSubmitForm(e){
       e.preventDefault();
+
+      if(!this.email || !this.password) {
+        alert("이메일 혹은 비밀번호를 입력해주세요");
+        return;
+      }
+
       this.$http.post('/api/user/login', { 
           email: this.email,
           password: this.password
@@ -87,6 +92,11 @@ export default {
           } else {
             this.$router.push("/");
             this.$router.go();
+          }
+        })
+        .catch((err) => {
+          if (this.$cookies.isKey("jwt")) {
+            alert(err.response.data.message);
           }
         })
     },

@@ -34,23 +34,12 @@
     <div class="section">
       <div class="container">
         <div class="button-container">
-          <a href="#button" class="btn btn-primary btn-round btn-lg">Follow</a>
-          <a
-            href="#button"
-            class="btn btn-default btn-round btn-lg btn-icon"
-            rel="tooltip"
-            title="Follow me on Twitter"
+          <v-btn 
+            class="btn btn-primary btn-round btn-lg"
+            @click="userDelete"
           >
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a
-            href="#button"
-            class="btn btn-default btn-round btn-lg btn-icon"
-            rel="tooltip"
-            title="Follow me on Instagram"
-          >
-            <i class="fab fa-instagram"></i>
-          </a>
+            Account Delete
+          </v-btn>
         </div>
         <h3 class="title">About me</h3>
         <h5 class="description">
@@ -154,6 +143,11 @@ export default {
         return;
       }
     })
+    .catch((err) => {
+      if (this.$cookies.isKey("jwt")) {
+        alert(err.response.data.message);
+      }
+    })
   },
   created() {
     this.userInfo();
@@ -179,6 +173,29 @@ export default {
         this.tag = res.data.tag,
         this.usertype = res.data.usertype
       })
+      .catch((err) => {
+        if (this.$cookies.isKey("jwt")) {
+          alert(err.response.data.message);
+        }
+      })
+    },
+    userDelete() {
+      if(confirm("정말 삭제하시겠습니까?")) {
+        this.$http.delete('/api/user', {
+          data: {
+            jwt: this.$cookies.get('jwt')
+          }
+        })
+        .then((_) => {
+            alert("사용자 삭제 완료");
+            this.$router.push("/");
+        })
+        .catch((err) => {
+            if (this.$cookies.isKey("jwt")) {
+              alert(err.response.data.message);
+            }
+        })
+      }
     }
   }
 };

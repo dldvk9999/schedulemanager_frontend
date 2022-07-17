@@ -8,6 +8,7 @@ import Profile from './pages/Profile.vue';
 import Calendar from './pages/Calendar.vue';
 import MainNavbar from './layout/MainNavbar.vue';
 import MainFooter from './layout/MainFooter.vue';
+import Signup from './pages/components/SignupForm.vue';
 
 Vue.use(Router);
 
@@ -38,6 +39,15 @@ export default new Router({
       components: { default: Login, header: MainNavbar },
       props: {
         header: { colorOnScroll: 400 }
+      }
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      components: { default: Signup, header: MainNavbar, footer: MainFooter },
+      props: {
+        header: { colorOnScroll: 400 },
+        footer: { backgroundColor: 'black' }
       }
     },
     {

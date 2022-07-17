@@ -28,6 +28,9 @@ import VueCookies from "vue-cookies";
 import VueTimepicker from 'vue2-timepicker';
 import 'vue2-timepicker/dist/VueTimepicker.css';
 import ToggleButton from 'vue-js-toggle-button';
+import BootstrapVue from 'bootstrap-vue';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap-vue/dist/bootstrap-vue.css';
  
 Vue.config.productionTip = false;
 Vue.prototype.$http = axios;
@@ -39,6 +42,7 @@ Vue.use(vueMoment);
 Vue.use(VueCookies);
 Vue.use(VueTimepicker);
 Vue.use(ToggleButton);
+Vue.use(BootstrapVue)
 
 new Vue({
   router,

@@ -13,38 +13,36 @@
                 tile
                 height="54"
                 class="d-flex"
+                style="align-items: center"
               >
                 <v-btn
                   icon
                   class="ma-2"
-                  @click="$refs.calendar.prev()"
+                  @click="prev"
                 >
                   <v-icon>chevron_left</v-icon>
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-select
-                  v-model="type"
-                  :items="types"
-                  dense
-                  outlined
-                  hide-details
-                  class="ma-2"
-                  label="type"
-                ></v-select>
-                <v-select
-                  v-model="weekday"
-                  :items="weekdays"
-                  dense
-                  outlined
-                  hide-details
-                  label="weekdays"
-                  class="ma-2"
-                ></v-select>
+                <b-button-group>
+                  <b-button @click="type = types[0]">월</b-button>
+                  <b-button @click="type = types[1]">주</b-button>
+                  <b-button @click="type = types[2]">일</b-button>
+                  <b-button @click="type = types[3]">4일</b-button>
+                </b-button-group>
+                <v-toolbar-title v-if="$refs.calendar" style="padding: 0 50px">
+                  {{ $refs.calendar.title }}
+                </v-toolbar-title>
+                <b-button-group>
+                  <b-button @click="weekday = weekdays[0]">일-토</b-button>
+                  <b-button @click="weekday = weekdays[1]">월-일</b-button>
+                  <b-button @click="weekday = weekdays[2]">월-금</b-button>
+                  <b-button @click="weekday = weekdays[3]">월수금</b-button>
+                </b-button-group>
                 <v-spacer></v-spacer>
                 <v-btn
                   icon
                   class="ma-2"
-                  @click="$refs.calendar.next()"
+                  @click="next"
                 >
                   <v-icon>chevron_right</v-icon>
                 </v-btn>
@@ -53,13 +51,14 @@
                 <v-calendar
                   ref="calendar"
                   v-model="value"
-                  :weekdays="weekday"
+                  :weekdays="weekday.value"
                   :type="type"
                   :events="events"
                   :event-overlap-mode="mode"
                   :event-overlap-threshold="30"
                   :event-color="getEventColor"
                   event-text-color="black"
+                  trim-weeks
                   @change="getEvents"
                   @click:date="showDialog"
                   @click:event="showEvent"
@@ -96,6 +95,15 @@
                     <v-card-text>
                       <span v-html="selectedEvent.content"></span>
                     </v-card-text>
+                    <n-button 
+                      v-for="file in fileList()" 
+                      v-bind:key="file" 
+                      type="primary" 
+                      round 
+                      simple
+                      @click="fileDownload(file)"
+                    >{{ file }}
+                    </n-button>
                     <v-card-actions>
                       <v-btn
                         text
@@ -108,6 +116,7 @@
                 <v-dialog
                   max-width="600"
                   v-model="dialog"
+                  persistent
                 >
                   <cal-dialog
                     :select-id="sch.id"
@@ -116,9 +125,9 @@
                     :select-title="sch.title"
                     :select-contents="sch.contents"
                     :select-locate="sch.locate"
-                    :select-alert="sch.alert"
+                    :select-alerts="sch.alert"
                     :select-again="sch.again"
-                    :select-file="sch.file"
+                    :select-files="sch.file"
                     :select-colors="sch.color"
                     :submit-button="sch.editText"
                     :select-is-edit="sch.isedit"
@@ -138,12 +147,14 @@
 <script>
 import MainFooter from '@/layout/MainFooter';
 import CalandarDialog from './Calandar-Dialog';
+import { Button } from '@/components';
 export default {
   name: 'calender-page',
   bodyClass: 'calender-page',
   components: {
     MainFooter,
     'cal-dialog': CalandarDialog,
+    [Button.name]: Button
   },
   beforeCreate() {
     let token = this.$cookies.get('jwt');
@@ -151,18 +162,17 @@ export default {
       alert("로그인 먼저 해주세요.");
       this.$router.push("/login");
       return;
-    }
-
-    this.$http.post('/api/user/login_check', {
-      jwt: token
-    })
-    .then(res => {
-      if (!res.data.status) {
-        alert("로그인 시간이 만료되었습니다. 다시 로그인해주세요.");
+    } else {
+      this.$http.post('/api/user/login_check', {
+        jwt: token
+      })
+      .then(_ => {})
+      .catch((err) => {
+        alert(err.response.data.message);
         this.$router.push("/login");
         return;
-      }
-    })
+      });
+    }
   },
   data: () => ({
     isTop: true,
@@ -178,6 +188,7 @@ export default {
     ],
     value: '',
     events: [],
+    eventsIds: [],
     colors: ['#EEAFAF', '#AFC4E7', '#BAE7AF', '#FFF77F', '#FF7F7F', '#FDC4F8', '#CB9FFD', '#A9E1ED', '#F3CDAD', '#DFD4E4', '#83A7A3'],
     dialog: false,
     selectedEvent: {},
@@ -199,6 +210,20 @@ export default {
     },
   }),
   methods: {
+    fileDownload(filename) {
+      console.log(filename)
+    },
+    fileList() {
+      return (this.selectedEvent.file||'').split(",");
+    },
+    next(){
+      this.$refs.calendar.next();
+      this.getEvents();
+    },
+    prev() {
+      this.$refs.calendar.prev();
+      this.getEvents();
+    },
     deleteSchedule(event) {
       if(confirm("정말 삭제하시겠습니까?")) {
         this.$http.delete('/api/schedule', {
@@ -209,6 +234,11 @@ export default {
         })
         .then(_ => {
           this.$router.go();
+        })
+        .catch((err) => {
+          if (this.$cookies.isKey("jwt")) {
+            alert(err.response.data.message);
+          }
         })
       }
     },
@@ -222,7 +252,7 @@ export default {
       this.sch.locate = event.locate;
       this.sch.alert = event.alert;
       this.sch.again = event.again;
-      this.sch.file = event.file;
+      this.sch.file = event.file ? event.file.split(',') : null;
       this.sch.color = event.color;
       this.sch.editText = "수정";
       this.sch.isedit = true;
@@ -249,29 +279,35 @@ export default {
       this.type = 'day';
     },
     getEvents () {
-      const events = []
-
       this.$http.post('/api/schedule/get', {
-        jwt: this.$cookies.get('jwt')
+        jwt: this.$cookies.get('jwt'),
+        month: this.$refs.calendar.$data.lastStart.month,
+        year: this.$refs.calendar.$data.lastStart.year
       })
       .then(res => {
         for (let i = 0; i < res.data.length; i++) {
-          events.push({
-            id: res.data[i].id,
-            name: res.data[i].title,
-            start: new Date(res.data[i].startdate),
-            end: new Date(res.data[i].enddate),
-            content: res.data[i].memo,
-            alert: res.data[i].alert,
-            again: res.data[i].again,
-            locate: res.data[i].locate,
-            file: res.data[i].file,
-            color: res.data[i].color ? res.data[i].color : 0
-          })
+          if (!this.eventsIds.includes(res.data[i].id)) {
+            this.events.push({
+              id: res.data[i].id,
+              name: res.data[i].title,
+              start: new Date(res.data[i].startdate),
+              end: new Date(res.data[i].enddate),
+              content: res.data[i].memo,
+              alert: res.data[i].alert,
+              again: res.data[i].again,
+              locate: res.data[i].locate,
+              file: res.data[i].file,
+              color: res.data[i].color ? res.data[i].color : 0
+            });
+            this.eventsIds.push(res.data[i].id);
+          }
         }
       })
-
-      this.events = events;
+      .catch((err) => {
+        if (this.$cookies.isKey("jwt")) {
+          alert(err.response.data.message);
+        }
+      })
     },
     getEventColor (event) {
       return this.colors[event.color]
@@ -285,7 +321,7 @@ export default {
         this.parameter = selectDay;
         this.sch.end = selectDay;
         this.sch.editText = "확인";
-        this.sch.color = Math.floor((this.colors.length) * Math.random());
+        this.sch.color = null;
         this.sch.title = null;
         this.sch.contents = null;
         this.sch.locate = null;
